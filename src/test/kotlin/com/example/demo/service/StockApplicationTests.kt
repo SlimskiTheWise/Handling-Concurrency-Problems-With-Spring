@@ -8,6 +8,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @SpringBootTest
 class StockApplicationTests(
@@ -26,12 +29,35 @@ class StockApplicationTests(
     }
 
     @Test
-    fun decreaseQuantity() {
+    fun decrease_quantity() {
         stockService.decrease(1L, 1L)
 
         // 100 - 1 = 99
         val stock: Stock = stockRepository.findById(1L).orElseThrow()
 
         assertThat(stock.quantity).isEqualTo(99L)
+    }
+
+    @Test
+    fun decrease_quantity_multiple_times_at_once() {
+        val threadCount = 100
+        val executorService: ExecutorService = Executors.newFixedThreadPool(32)
+        val latch = CountDownLatch(threadCount)
+
+        for (i in 0 until threadCount) {
+            executorService.submit {
+                try {
+                    stockService.decrease(1L, 1L)
+                } finally {
+                    latch.countDown()
+                }
+            }
+        }
+
+        latch.await()
+
+        val stock: Stock = stockRepository.findById(1L).orElseThrow()
+        //should be 100 - (1 * 100) = 0, but because of a concurrency problem, it won't be 0
+        assertThat(stock.quantity).isNotEqualTo(0)
     }
 }
