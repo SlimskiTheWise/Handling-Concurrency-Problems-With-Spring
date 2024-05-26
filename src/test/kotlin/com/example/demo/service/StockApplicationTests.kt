@@ -57,7 +57,7 @@ class StockApplicationTests(
         latch.await()
 
         val stock: Stock = stockRepository.findById(1L).orElseThrow()
-        //should be 100 - (1 * 100) = 0, but because of a concurrency problem, it won't be 0
-        assertThat(stock.quantity).isNotEqualTo(0)
+        //should be 100 - (1 * 100) = 0
+        assertThat(stock.quantity).isEqualTo(0)
     }
 }

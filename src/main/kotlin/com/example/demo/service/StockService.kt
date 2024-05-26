@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service
 @Service
 class StockService (val stockRepository: StockRepository) {
 
-    @Transactional
-    fun decrease (id: Long, quantity: Long) {
-        val stock:Stock = stockRepository.findById(id).orElseThrow()
-        stock.decreaseQuantity(quantity)
-
-        stockRepository.saveAndFlush(stock)
+    fun decrease(id: Long, quantity: Long) {
+        synchronized(this) {
+            val stock: Stock = stockRepository.findById(id).orElseThrow()
+            stock.decreaseQuantity(quantity)
+            stockRepository.saveAndFlush(stock)
+        }
     }
 }
