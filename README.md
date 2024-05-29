@@ -46,3 +46,9 @@ mechanism ensures consistency within one process by preventing concurrent access
 there are multiple servers or processes, `synchronized(this)` will not prevent concurrent access across different
 processes, leading to potential data inconsistencies. In distributed systems, relying solely on in-process
 synchronization is insufficient for ensuring data integrity.
+
+## Solution
+To properly handle concurrency in a transactional context, you can use other mechanisms like:
+
+### Pessimistic Locking 
+Lock the database row to ensure that only one transaction can modify it at a time.
