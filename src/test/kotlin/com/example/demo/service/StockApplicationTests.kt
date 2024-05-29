@@ -15,8 +15,26 @@ import java.util.concurrent.Executors
 @SpringBootTest
 class StockApplicationTests(
     @Autowired val stockRepository: StockRepository,
-    @Autowired val stockService: StockService
+    @Autowired val stockService: StockService,
+    @Autowired val pessimisticLockStockService: PessimisticLockStockService
 ) {
+    fun <T: IStockService> sendRequests(service: T) {
+        val threadCount = 100
+        val executorService: ExecutorService = Executors.newFixedThreadPool(32)
+        val latch = CountDownLatch(threadCount)
+
+        for (i in 0 until threadCount) {
+            executorService.submit {
+                try {
+                    service.decrease(1L, 1L)
+                } finally {
+                    latch.countDown()
+                }
+            }
+        }
+
+        latch.await()
+    }
 
     @BeforeEach
     fun seedStock() {
@@ -40,21 +58,16 @@ class StockApplicationTests(
 
     @Test
     fun decrease_quantity_multiple_times_at_once() {
-        val threadCount = 100
-        val executorService: ExecutorService = Executors.newFixedThreadPool(32)
-        val latch = CountDownLatch(threadCount)
+        sendRequests(stockService)
 
-        for (i in 0 until threadCount) {
-            executorService.submit {
-                try {
-                    stockService.decrease(1L, 1L)
-                } finally {
-                    latch.countDown()
-                }
-            }
-        }
+        val stock: Stock = stockRepository.findById(1L).orElseThrow()
+        //should be 100 - (1 * 100) = 0
+        assertThat(stock.quantity).isEqualTo(0)
+    }
 
-        latch.await()
+    @Test
+    fun decrease_quantity_multiple_times_at_once_pessimistic_lock() {
+        sendRequests(pessimisticLockStockService)
 
         val stock: Stock = stockRepository.findById(1L).orElseThrow()
         //should be 100 - (1 * 100) = 0
