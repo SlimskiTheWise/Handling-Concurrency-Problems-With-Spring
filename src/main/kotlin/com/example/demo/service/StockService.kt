@@ -6,9 +6,8 @@ import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
 @Service
-class StockService (val stockRepository: StockRepository) {
-
-    fun decrease(id: Long, quantity: Long) {
+class StockService (val stockRepository: StockRepository): IStockService {
+    override fun decrease(id: Long, quantity: Long) {
         synchronized(this) {
             val stock: Stock = stockRepository.findById(id).orElseThrow()
             stock.decreaseQuantity(quantity)
