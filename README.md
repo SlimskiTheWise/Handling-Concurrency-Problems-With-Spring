@@ -52,3 +52,6 @@ To properly handle concurrency in a transactional context, you can use other mec
 
 ### Pessimistic Locking 
 Lock the database row to ensure that only one transaction can modify it at a time.
+
+### Optimistic Locking
+Use versioning to ensure that only one transaction can commit changes based on the version number.
