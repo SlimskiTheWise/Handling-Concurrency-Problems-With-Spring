@@ -12,6 +12,9 @@ class Stock (
 
     @Column(nullable = false)
     var quantity: Long,
+
+    @Version
+    var version: Long = 0L,
 ) {
     fun decreaseQuantity(quantity: Long) {
         if (this.quantity <= 0) throw IllegalArgumentException("Quantity must be greater than zero")
