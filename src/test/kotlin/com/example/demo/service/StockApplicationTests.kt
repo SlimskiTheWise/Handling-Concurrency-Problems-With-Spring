@@ -2,6 +2,7 @@ package com.example.demo.service
 
 import com.example.demo.domain.Stock
 import com.example.demo.repository.StockRepository
+import com.example.demo.facade.OptimisticLockStockFacade
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -16,9 +17,10 @@ import java.util.concurrent.Executors
 class StockApplicationTests(
     @Autowired val stockRepository: StockRepository,
     @Autowired val stockService: StockService,
-    @Autowired val pessimisticLockStockService: PessimisticLockStockService
+    @Autowired val pessimisticLockStockService: PessimisticLockStockService,
+    @Autowired val optimisticLockStockFacade: OptimisticLockStockFacade,
 ) {
-    fun <T: IStockService> sendRequests(service: T) {
+    fun <T : IStockService> sendRequests(service: T) {
         val threadCount = 100
         val executorService: ExecutorService = Executors.newFixedThreadPool(32)
         val latch = CountDownLatch(threadCount)
@@ -68,6 +70,15 @@ class StockApplicationTests(
     @Test
     fun decrease_quantity_multiple_times_at_once_pessimistic_lock() {
         sendRequests(pessimisticLockStockService)
+
+        val stock: Stock = stockRepository.findById(1L).orElseThrow()
+        //should be 100 - (1 * 100) = 0
+        assertThat(stock.quantity).isEqualTo(0)
+    }
+
+    @Test
+    fun decrease_quantity_multiple_times_at_once_optimistic_lock() {
+        sendRequests(optimisticLockStockFacade)
 
         val stock: Stock = stockRepository.findById(1L).orElseThrow()
         //should be 100 - (1 * 100) = 0
