@@ -7,6 +7,8 @@ spring:
     url: jdbc:mysql://localhost:3309/users_db
     username: root
     password: 1234
+    hikari:
+      maximum-pool-size: 40
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
