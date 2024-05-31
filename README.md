@@ -48,10 +48,19 @@ processes, leading to potential data inconsistencies. In distributed systems, re
 synchronization is insufficient for ensuring data integrity.
 
 ## Solution
+
 To properly handle concurrency in a transactional context, you can use other mechanisms like:
 
-### Pessimistic Locking 
+### Pessimistic Locking
+
 Lock the database row to ensure that only one transaction can modify it at a time.
 
 ### Optimistic Locking
+
 Use versioning to ensure that only one transaction can commit changes based on the version number.
+
+### Named Locking
+
+Named locking (also known as application-level locking) uses a named lock to control access to a resource. It is useful
+for ensuring that only one transaction at a time can access a specific resource across different transactions and even
+across different instances of the application. 
