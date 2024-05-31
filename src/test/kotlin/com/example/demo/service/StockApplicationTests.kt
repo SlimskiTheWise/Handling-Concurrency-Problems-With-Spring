@@ -1,6 +1,7 @@
 package com.example.demo.service
 
 import com.example.demo.domain.Stock
+import com.example.demo.facade.NamedLockStockFacade
 import com.example.demo.repository.StockRepository
 import com.example.demo.facade.OptimisticLockStockFacade
 import org.assertj.core.api.Assertions.assertThat
@@ -19,6 +20,7 @@ class StockApplicationTests(
     @Autowired val stockService: StockService,
     @Autowired val pessimisticLockStockService: PessimisticLockStockService,
     @Autowired val optimisticLockStockFacade: OptimisticLockStockFacade,
+    @Autowired val namedLockStockFacade: NamedLockStockFacade,
 ) {
     fun <T : IStockService> sendRequests(service: T) {
         val threadCount = 100
@@ -79,6 +81,15 @@ class StockApplicationTests(
     @Test
     fun decrease_quantity_multiple_times_at_once_optimistic_lock() {
         sendRequests(optimisticLockStockFacade)
+
+        val stock: Stock = stockRepository.findById(1L).orElseThrow()
+        //should be 100 - (1 * 100) = 0
+        assertThat(stock.quantity).isEqualTo(0)
+    }
+
+    @Test
+    fun decrease_quantity_multiple_times_at_once_named_lock() {
+        sendRequests(namedLockStockFacade)
 
         val stock: Stock = stockRepository.findById(1L).orElseThrow()
         //should be 100 - (1 * 100) = 0
