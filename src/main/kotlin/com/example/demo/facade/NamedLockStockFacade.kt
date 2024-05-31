@@ -10,14 +10,22 @@ import org.springframework.stereotype.Service
 class NamedLockStockFacade(
     private val lockRepository: LockRepository,
     private val stockService: StockService
-): IStockService {
+) : IStockService {
+
     @Transactional
     override fun decrease(id: Long, quantity: Long) {
         try {
-            lockRepository.getLock(id.toString())
-            stockService.decrease(id, quantity)
+            val lockResult = lockRepository.getLock(id.toString())
+            println("Lock acquisition attempt for id: $id -> success: $lockResult")
+            if (lockResult == 1) {
+                stockService.decreaseForNamedLocking(id, quantity)
+            }
+        } catch (e: Exception) {
+            println("Exception during lock acquisition or processing for id: $id -> ${e.message}")
+            throw e
         } finally {
-            lockRepository.releaseLock(id.toString())
+            val lockReleased = lockRepository.releaseLock(id.toString()) == 1
+            println("Lock released for id: $id -> success: $lockReleased")
         }
     }
 }
