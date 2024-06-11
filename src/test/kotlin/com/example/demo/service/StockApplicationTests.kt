@@ -4,6 +4,7 @@ import com.example.demo.domain.Stock
 import com.example.demo.facade.LettuceLockStockFacade
 import com.example.demo.facade.NamedLockStockFacade
 import com.example.demo.facade.OptimisticLockStockFacade
+import com.example.demo.facade.RedissonLockStockFacade
 import com.example.demo.repository.StockRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -23,6 +24,7 @@ class StockApplicationTests(
     @Autowired val optimisticLockStockFacade: OptimisticLockStockFacade,
     @Autowired val namedLockStockFacade: NamedLockStockFacade,
     @Autowired val lettuceLockStockFacade: LettuceLockStockFacade,
+    @Autowired val redissonLockStockFacade: RedissonLockStockFacade,
 ) {
     fun <T : IStockService> sendRequests(service: T) {
         val threadCount = 100
@@ -101,6 +103,15 @@ class StockApplicationTests(
     @Test
     fun decrease_quantity_multiple_times_at_spin_lock() {
         sendRequests(lettuceLockStockFacade)
+
+        val stock: Stock = stockRepository.findById(1L).orElseThrow()
+        //should be 100 - (1 * 100) = 0
+        assertThat(stock.quantity).isEqualTo(0)
+    }
+
+    @Test
+    fun decrease_quantity_multiple_times_redisson() {
+        sendRequests(redissonLockStockFacade)
 
         val stock: Stock = stockRepository.findById(1L).orElseThrow()
         //should be 100 - (1 * 100) = 0
